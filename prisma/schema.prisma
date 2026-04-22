@@ -1,0 +1,266 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PolicyStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum PolicyDecision {
+  BLOCKED
+  REQUIRES_APPROVAL
+  AUTO_APPROVED
+}
+
+enum ActionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  READY_TO_EXECUTE
+  EXECUTING
+  EXECUTED
+  FAILED
+  CANCELLED
+}
+
+enum TaskStatus {
+  PENDING
+  NEEDS_CLARIFICATION
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  FAILED
+}
+
+enum SimulationStatus {
+  PENDING
+  PASSED
+  FAILED
+  SKIPPED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  BLOCKED
+}
+
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+}
+
+enum ExecutionStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  TIMEOUT
+}
+
+enum AuditEventType {
+  TASK_CREATED
+  TASK_CLARIFICATION_REQUESTED
+  TASK_CLARIFIED
+  INTENT_PARSED
+  PLAN_GENERATED
+  POLICY_COMPILED
+  POLICY_EVALUATED_BLOCK
+  POLICY_EVALUATED_PASS
+  SIMULATION_PASSED
+  SIMULATION_FAILED
+  ACTION_APPROVED
+  ACTION_REJECTED
+  EXECUTION_STARTED
+  EXECUTION_CONFIRMED
+  EXECUTION_FAILED
+  POLICY_CREATED
+  POLICY_UPDATED
+  POLICY_PAUSED
+  POLICY_RESUMED
+  AUDIT_EXPORTED
+  EMERGENCY_STOP_TRIGGERED
+  EMERGENCY_STOP_CLEARED
+  TASK_CANCELLED
+}
+
+model User {
+  id            String       @id @default(uuid())
+  walletAddress String       @unique
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  sessions      Session[]
+  authChallenges AuthChallenge[]
+  policies      Policy[]
+  tasks         AgentTask[]
+  auditEvents   AuditEvent[]
+}
+
+model AuthChallenge {
+  id            String   @id @default(uuid())
+  userId        String?
+  walletAddress String
+  nonce         String   @unique
+  message       String
+  createdAt     DateTime @default(now())
+  expiresAt     DateTime
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([walletAddress])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  jti       String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Policy {
+  id                       String        @id @default(uuid())
+  userId                   String
+  walletAddress            String
+  name                     String
+  description              String?
+  version                  Int           @default(1)
+  status                   PolicyStatus  @default(ACTIVE)
+  emergencyPaused          Boolean       @default(false)
+  approvalThresholdBnb     Decimal       @db.Decimal(36, 18)
+  maxTransactionBnb        Decimal       @db.Decimal(36, 18)
+  maxDailySpendBnb         Decimal       @db.Decimal(36, 18)
+  maxSlippageBps           Int
+  allowedTokenAddresses    Json
+  blockedTokenAddresses    Json
+  allowedContractAddresses Json
+  blockedContractAddresses Json
+  allowedActionTypes       Json
+  blockedActionTypes       Json
+  simulationRequired       Boolean       @default(true)
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+  user                     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policyRules              PolicyRule[]
+  tasks                    AgentTask[]
+}
+
+model PolicyRule {
+  id          String   @id @default(uuid())
+  policyId    String
+  ruleType    String
+  field       String
+  operator    String
+  value       Json
+  decision    String
+  explanation String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  policy      Policy   @relation(fields: [policyId], references: [id], onDelete: Cascade)
+}
+
+model AgentTask {
+  id                  String           @id @default(uuid())
+  userId              String
+  policyId            String
+  policyVersion       Int
+  naturalLanguageGoal String
+  parsedIntent        Json?
+  status              TaskStatus       @default(PENDING)
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  user                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  policy              Policy           @relation(fields: [policyId], references: [id], onDelete: Restrict)
+  actions             ProposedAction[]
+  auditEvents         AuditEvent[]
+}
+
+model ProposedAction {
+  id                  String            @id @default(uuid())
+  taskId              String
+  order               Int
+  actionType          String
+  adapter             String
+  targetContract      String?
+  targetToken         String?
+  destinationAddress  String?
+  amountBnb           Decimal?          @db.Decimal(36, 18)
+  amountTokenUnits    String?
+  slippageBps         Int
+  estimatedCostBnb    Decimal           @db.Decimal(36, 18)
+  label               String
+  calldata            String?
+  metadata            Json
+  policyDecision      PolicyDecision
+  triggeredRules      Json
+  policyExplanation   Json
+  riskLevel           RiskLevel
+  riskExplanation     String
+  simulationStatus    SimulationStatus  @default(PENDING)
+  status              ActionStatus      @default(PENDING)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  task                AgentTask         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  simulationResult    SimulationResult?
+  approvalRecords     ApprovalRecord[]
+  executionRecord     ExecutionRecord?
+  auditEvents         AuditEvent[]
+}
+
+model SimulationResult {
+  id          String   @id @default(uuid())
+  actionId    String   @unique
+  success     Boolean
+  error       String?
+  gasEstimate String?
+  logs        Json
+  simulatedAt DateTime @default(now())
+  action      ProposedAction @relation(fields: [actionId], references: [id], onDelete: Cascade)
+}
+
+model ApprovalRecord {
+  id              String   @id @default(uuid())
+  actionId        String
+  decision        ApprovalDecision
+  decidedByUserId String
+  notes           String?
+  decidedAt       DateTime @default(now())
+  action          ProposedAction @relation(fields: [actionId], references: [id], onDelete: Cascade)
+}
+
+model ExecutionRecord {
+  id              String          @id @default(uuid())
+  actionId        String          @unique
+  txHash          String?
+  status          ExecutionStatus @default(PENDING)
+  broadcastAt     DateTime?
+  confirmedAt     DateTime?
+  error           String?
+  gasUsed         String?
+  valueWei        String?
+  explorerUrl     String?
+  action          ProposedAction  @relation(fields: [actionId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id        String         @id @default(uuid())
+  userId    String
+  taskId    String?
+  actionId  String?
+  eventType AuditEventType
+  metadata  Json
+  timestamp DateTime       @default(now())
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      AgentTask?     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  action    ProposedAction? @relation(fields: [actionId], references: [id], onDelete: Cascade)
+
+  @@index([timestamp])
+}

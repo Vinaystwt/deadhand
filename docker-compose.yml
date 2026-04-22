@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: deadhand-postgres
+    environment:
+      POSTGRES_USER: deadhand
+      POSTGRES_PASSWORD: deadhand
+      POSTGRES_DB: deadhand
+    ports:
+      - "5432:5432"
+    volumes:
+      - deadhand-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deadhand -d deadhand"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  deadhand-postgres-data:

@@ -1,0 +1,25 @@
+{
+  "name": "@deadhand/types",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:unit": "echo 'No package-level unit tests for @deadhand/types'",
+    "test:integration": "echo 'No package-level integration tests for @deadhand/types'",
+    "smoke:anthropic": "echo 'No package-level Anthropic smoke test for @deadhand/types'",
+    "smoke:external": "echo 'No package-level external-wiring smoke test for @deadhand/types'"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

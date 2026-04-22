@@ -1,0 +1,206 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background-color: #0A0A0B;
+    color: #F0F0F2;
+    font-family: "Epilogue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Improve letter spacing for Epilogue at small sizes */
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #0A0A0B;
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background: rgba(212, 168, 67, 0.22);
+    color: #F0F0F2;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #111113;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #3A3A46;
+    border-radius: 2px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #5A5A6A;
+  }
+
+  /* Barlow Semi Condensed needs tighter tracking at display sizes */
+  h1, h2, h3 {
+    font-family: "Barlow Semi Condensed", sans-serif;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  .font-display {
+    font-family: "Barlow Semi Condensed", sans-serif;
+  }
+
+  .font-mono {
+    font-family: "JetBrains Mono", monospace;
+  }
+
+  /* Glass surface — taste-skill: inner border hairline + inner shadow for physical refraction */
+  .glass-surface {
+    background: rgba(17, 17, 19, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .amber-border-glow {
+    border-color: rgba(212, 168, 67, 0.35);
+    box-shadow: 0 0 16px rgba(212, 168, 67, 0.08);
+  }
+
+  .danger-border-glow {
+    border-color: rgba(192, 57, 43, 0.45);
+    box-shadow: 0 0 16px rgba(192, 57, 43, 0.10);
+  }
+
+  /* Grid background for hero section */
+  .grid-bg {
+    background-image:
+      linear-gradient(rgba(42, 42, 50, 0.25) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(42, 42, 50, 0.25) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* Reason code typography */
+  .reason-code {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* Shimmer text — amber gradient animation */
+  .shimmer-text {
+    background: linear-gradient(
+      90deg,
+      #D4A843 0%,
+      #F0E060 38%,
+      #D4A843 58%,
+      #A07830 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3.5s linear infinite;
+  }
+
+  /* Double-bezel outer shell — taste-skill/high-end-visual-design */
+  .bezel-outer {
+    padding: 1.5px;
+    border-radius: calc(8px + 1.5px);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .bezel-inner {
+    border-radius: 8px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+  }
+
+  /* Danger double-bezel for VetoCard */
+  .bezel-outer-danger {
+    padding: 1.5px;
+    border-radius: calc(8px + 1.5px);
+    background: rgba(192, 57, 43, 0.06);
+    border: 1px solid rgba(192, 57, 43, 0.2);
+    box-shadow: 0 0 24px rgba(192, 57, 43, 0.08);
+    animation: veto-glow-pulse 1.4s ease-out 0.4s 1 forwards;
+  }
+
+  /* Eyebrow tag — high-end-visual-design */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 9999px;
+    padding: 3px 10px;
+    font-size: 0.65rem;
+    font-family: "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    border: 1px solid rgba(212, 168, 67, 0.25);
+    color: rgba(212, 168, 67, 0.8);
+    background: rgba(212, 168, 67, 0.06);
+  }
+}
+
+/* ─── Noise overlay — fixed, pointer-events-none per performance rules ──────── */
+/* taste-skill: ONLY on fixed pseudo-elements, never scrolling containers */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ─── Keyframes ──────────────────────────────────────────────────────────────── */
+
+@keyframes veto-glow-pulse {
+  0%   { box-shadow: 0 0 24px rgba(192, 57, 43, 0.08); }
+  35%  { box-shadow: 0 0 48px rgba(192, 57, 43, 0.32), 0 0 80px rgba(192, 57, 43, 0.14); }
+  100% { box-shadow: 0 0 24px rgba(192, 57, 43, 0.10); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-amber {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+/* Smooth reduced motion — respect user preference */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
