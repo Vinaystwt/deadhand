@@ -115,7 +115,6 @@ The demo page (`/app/demo`) walks through all 6 enforcement states in order:
 - Node.js 20+
 - PostgreSQL 15+ running locally
 - MetaMask browser extension
-- Anthropic API key
 
 ### 1. Clone and install
 
@@ -138,10 +137,31 @@ Edit `.env`:
 ```env
 DATABASE_URL="postgresql://deadhand:deadhand@localhost:5432/deadhand?schema=public"
 JWT_SECRET="your-long-random-secret-min-32-chars"
-ANTHROPIC_API_KEY="sk-ant-..."
 DEMO_WALLET_ADDRESS="0x..."
 DEMO_WALLET_PRIVATE_KEY="..."
 ```
+
+### Bring Your Own Key
+
+Deadhand supports both:
+
+- `AI_PROVIDER=mock` for local development, demos, and testing without an LLM key
+- `AI_PROVIDER=anthropic` for the real Claude-backed path
+
+If you want the real AI path, you must provide your own Anthropic credentials through environment variables:
+
+```env
+AI_PROVIDER=anthropic
+ANTHROPIC_API_KEY="your-own-key"
+ANTHROPIC_MODEL="claude-haiku-4-5-20251001"
+```
+
+Important:
+
+- this repo does **not** include an Anthropic key
+- any recorded demo may use a real Anthropic key in the maintainer’s private environment
+- anyone running the project themselves must bring their own key
+- never commit API keys or put them in tracked files
 
 ### 3. Run database migrations
 
@@ -174,29 +194,6 @@ Open `http://127.0.0.1:5173`, click **Connect wallet**, approve in MetaMask. Swi
 
 ---
 
-## Netlify Deployment
-
-The frontend is deployment-ready for Netlify as a static SPA. The current Netlify-linked workspace is `apps/frontend/`.
-
-Build truth:
-- linked-workspace build command: `npm run build`
-- linked-workspace publish directory: `dist`
-- SPA routing is handled by:
-  - root [netlify.toml](/Users/vinaysharma/deadhand/netlify.toml), which is now aligned to the linked frontend workspace
-  - [apps/frontend/netlify.toml](/Users/vinaysharma/deadhand/apps/frontend/netlify.toml)
-  - [apps/frontend/public/_redirects](/Users/vinaysharma/deadhand/apps/frontend/public/_redirects)
-
-Required production frontend env:
-- `VITE_API_BASE_URL`
-  - set this to the public backend base URL, for example `https://your-backend.example.com`
-  - without it, the deployed frontend would default to `/api`, which only works in local Vite proxy mode
-
-Important deployment note:
-- local development still uses the Vite proxy by default
-- production/Netlify should use `VITE_API_BASE_URL`
-
----
-
 ## Project Structure
 
 ```
@@ -218,26 +215,8 @@ deadhand/
         domain/        Types and validation
         lib/           DB client, AI client, wallet utils
         middleware/     Auth, error handling
-  docs/                Architecture and migration notes
+  docs/                Public-facing reference docs
 ```
-
----
-
-## Design System
-
-Deadhand uses a bespoke dark design system. Key tokens:
-
-| Token | Value | Usage |
-|---|---|---|
-| `bg` | `#0A0A0B` | Page background |
-| `amber` | `#D4A843` | Brand accent, CTAs, active states |
-| `danger` | `#C0392B` | Vetoes, blocked actions, error states |
-| `success` | `#27AE60` | Auto-approved, valid receipts |
-| `steel` | `#6B7FA3` | Secondary info, AI layer |
-| `surface-1` | `#111113` | Card backgrounds |
-| `surface-2` | `#18181B` | Input backgrounds, nested panels |
-
-Fonts: **Barlow Semi Condensed** (display), **Epilogue** (body), **JetBrains Mono** (mono/code)
 
 ---
 
