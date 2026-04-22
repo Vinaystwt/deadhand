@@ -182,9 +182,9 @@ Build truth:
 - linked-workspace build command: `npm run build`
 - linked-workspace publish directory: `dist`
 - SPA routing is handled by:
+  - root [netlify.toml](/Users/vinaysharma/deadhand/netlify.toml), which is now aligned to the linked frontend workspace
   - [apps/frontend/netlify.toml](/Users/vinaysharma/deadhand/apps/frontend/netlify.toml)
   - [apps/frontend/public/_redirects](/Users/vinaysharma/deadhand/apps/frontend/public/_redirects)
-- root-level [netlify.toml](/Users/vinaysharma/deadhand/netlify.toml) remains useful if you later choose to deploy from the monorepo root instead of the frontend workspace
 
 Required production frontend env:
 - `VITE_API_BASE_URL`
